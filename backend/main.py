@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from backend.core.config import settings
+from backend.api.resume import router as resume_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,3 +24,5 @@ def health():
     return {
         "status": "healthy"
     }
+
+app.include_router(resume_router)
