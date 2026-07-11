@@ -1,6 +1,7 @@
 import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
-
+from backend.services.pdf_service import extract_text_from_pdf
+from backend.services.resume_parser import parse_resume
 router = APIRouter(
     prefix="/resume",
     tags=["Resume"]
@@ -19,7 +20,7 @@ async def upload_resume(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
-            details = "Only Pdf files are allowed"
+            detail = "Only Pdf files are allowed"
         )
 
     os.makedirs("uploads", exist_ok=True)
@@ -27,8 +28,16 @@ async def upload_resume(
     contents = await file.read()
 
     with open(f"uploads/{file.filename}","wb") as f:
+
         f.write(contents)
+
+    pdf_path = f"uploads/{file.filename}"
+    text = extract_text_from_pdf(pdf_path)
+    parsed_resume = parse_resume(text)
+
     return {
         "message": "Resume uploaded successfully",
-        "filename": file.filename
+        "filename": file.filename,
+        "parsed_resume": parsed_resume,
+        "preview": text[:500]
     }
